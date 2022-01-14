@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1865327C2790A38E00CDFFB6 /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1865327B2790A38E00CDFFB6 /* SceneView.swift */; };
 		1866B369278ECB7A00C1002C /* MainScene.scn in Resources */ = {isa = PBXBuildFile; fileRef = 1866B368278ECB7A00C1002C /* MainScene.scn */; };
 		18DA75DF278F889D00A469B6 /* wuerfel-color.png in Resources */ = {isa = PBXBuildFile; fileRef = 18DA75DD278F889D00A469B6 /* wuerfel-color.png */; };
 		18DA75E0278F889D00A469B6 /* wuerfel-normal.png in Resources */ = {isa = PBXBuildFile; fileRef = 18DA75DE278F889D00A469B6 /* wuerfel-normal.png */; };
@@ -36,9 +37,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1865327B2790A38E00CDFFB6 /* SceneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneView.swift; sourceTree = "<group>"; };
 		1866B368278ECB7A00C1002C /* MainScene.scn */ = {isa = PBXFileReference; lastKnownFileType = file.bplist; path = MainScene.scn; sourceTree = "<group>"; };
-		18DA75DD278F889D00A469B6 /* wuerfel-color.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "wuerfel-color.png"; path = "../MrDicey resources/Dice v2/red-dice/textures/wuerfel-color.png"; sourceTree = "<group>"; };
-		18DA75DE278F889D00A469B6 /* wuerfel-normal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "wuerfel-normal.png"; path = "../MrDicey resources/Dice v2/red-dice/textures/wuerfel-normal.png"; sourceTree = "<group>"; };
+		18DA75DD278F889D00A469B6 /* wuerfel-color.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "wuerfel-color.png"; sourceTree = "<group>"; };
+		18DA75DE278F889D00A469B6 /* wuerfel-normal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "wuerfel-normal.png"; sourceTree = "<group>"; };
 		CCAB6977278CF16500396D8A /* MrDicey.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MrDicey.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CCAB697A278CF16500396D8A /* MrDiceyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MrDiceyApp.swift; sourceTree = "<group>"; };
 		CCAB697C278CF16500396D8A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -81,8 +83,6 @@
 		CCAB696E278CF16500396D8A = {
 			isa = PBXGroup;
 			children = (
-				18DA75DD278F889D00A469B6 /* wuerfel-color.png */,
-				18DA75DE278F889D00A469B6 /* wuerfel-normal.png */,
 				CCAB6979278CF16500396D8A /* MrDicey */,
 				CCAB698B278CF16600396D8A /* MrDiceyTests */,
 				CCAB6996278CF16600396D8A /* MrDiceyUITests */,
@@ -103,9 +103,12 @@
 		CCAB6979278CF16500396D8A /* MrDicey */ = {
 			isa = PBXGroup;
 			children = (
+				18DA75DD278F889D00A469B6 /* wuerfel-color.png */,
+				18DA75DE278F889D00A469B6 /* wuerfel-normal.png */,
 				1866B368278ECB7A00C1002C /* MainScene.scn */,
 				CCAB697A278CF16500396D8A /* MrDiceyApp.swift */,
 				CCAB697C278CF16500396D8A /* ContentView.swift */,
+				1865327B2790A38E00CDFFB6 /* SceneView.swift */,
 				CCAB697E278CF16600396D8A /* Assets.xcassets */,
 				CCAB6983278CF16600396D8A /* Info.plist */,
 				CCAB6980278CF16600396D8A /* Preview Content */,
@@ -273,6 +276,7 @@
 			files = (
 				CCAB697D278CF16500396D8A /* ContentView.swift in Sources */,
 				CCAB697B278CF16500396D8A /* MrDiceyApp.swift in Sources */,
+				1865327C2790A38E00CDFFB6 /* SceneView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
