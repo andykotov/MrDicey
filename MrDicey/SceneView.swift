@@ -55,8 +55,11 @@ struct SceneView: UIViewRepresentable {
 //            let p = panGesture.location(in: view)
 //            let hitResults = view.hitTest(p, options: [:])
             
-            guard let box = scene?.rootNode.childNode(withName: "dice", recursively: true) else { return }
-            let translation = panGesture.translation(in: panGesture.view)
+            guard let dice1 = scene?.rootNode.childNode(withName: "dice1", recursively: true) else { return }
+            guard let dice2 = scene?.rootNode.childNode(withName: "dice2", recursively: true) else { return }
+//            guard let camera = scene?.rootNode.childNode(withName: "camera", recursively: true) else { return }
+            
+//            let translation = panGesture.translation(in: panGesture.view)
             let location = panGesture.location(in: self.view)
             
             switch panGesture.state {
@@ -65,6 +68,15 @@ struct SceneView: UIViewRepresentable {
                 guard let hitNodeResult = view.hitTest(location, options: nil).first else { return }
                 lastPanLocation = hitNodeResult.worldCoordinates
                 panStartZ = CGFloat(view.projectPoint(lastPanLocation).z)
+                
+                let worldTouchPosition = view.unprojectPoint(SCNVector3(location.x, location.y, panStartZ))
+                let movementVector = SCNVector3(
+                    worldTouchPosition.x - lastPanLocation.x,
+                    worldTouchPosition.y - lastPanLocation.y,
+                    worldTouchPosition.z - lastPanLocation.z)
+                dice1.localTranslate(by: movementVector)
+                dice2.localTranslate(by: movementVector)
+                self.lastPanLocation = worldTouchPosition
                 
 //                if hitNodeResult.node.name == "dice" {
 //                    box = hitNodeResult.node ?? SCNNode()
@@ -80,27 +92,44 @@ struct SceneView: UIViewRepresentable {
 //                box.pivot = SCNMatrix4Mult(changePivot, currentPivot)
 //                box.transform = SCNMatrix4Identity
 //                box.position = currentPosition
-                let x = Float(translation.x)
-                let y = Float(translation.y)
-                let anglePan = sqrt(pow(x,2)+pow(y,2))*(Float)(Double.pi)/180.0
-                
-                var rotationVector = SCNVector4()
-                    rotationVector.x = y
-                    rotationVector.y = -x
-                    rotationVector.z = 0
-                    rotationVector.w = anglePan
-                
-                
-                box.rotation = rotationVector
-                
-            case .ended:
+//                let x = Float(translation.x)
+//                let y = Float(translation.y)
+//                let anglePan = sqrt(pow(x,2)+pow(y,2))*(Float)(Double.pi)/180.0
+//
+//                var rotationVector = SCNVector4()
+//                    rotationVector.x = y
+//                    rotationVector.y = -x
+//                    rotationVector.z = 0
+//                    rotationVector.w = anglePan
+//
+//
+//                box.rotation = rotationVector
                 let worldTouchPosition = view.unprojectPoint(SCNVector3(location.x, location.y, panStartZ))
                 let movementVector = SCNVector3(
                     worldTouchPosition.x - lastPanLocation.x,
                     worldTouchPosition.y - lastPanLocation.y,
                     worldTouchPosition.z - lastPanLocation.z)
-                box.physicsBody?.applyForce(movementVector, asImpulse: true)
+                dice1.physicsBody?.applyForce(movementVector, asImpulse: true)
+                dice2.physicsBody?.applyForce(movementVector, asImpulse: true)
                 self.lastPanLocation = worldTouchPosition
+                
+            case .ended:
+//                let dicePosition = SCNVector3(
+//                    dice1.worldPosition.x,
+//                    30,
+//                    dice1.worldPosition.z)
+//                let euler = SCNVector3(
+//                    -90,
+//                    0,
+//                    0)
+//
+//                let constraint = SCNLookAtConstraint(target: dice1)
+//                camera.constraints = [constraint]
+//                camera.eulerAngles = euler
+//
+//                let move = SCNAction.move(to: dicePosition, duration: 1.0)
+//                camera.runAction(move)
+//                camera.localTranslate(by: dicePosition)
                 
                 scene?.physicsWorld.gravity.y = -1
             default:
