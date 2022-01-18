@@ -19,7 +19,7 @@ struct SceneView: UIViewRepresentable {
         // Instantiate the SCNView and setup the scene
         view.scene = scene
         view.pointOfView = scene?.rootNode.childNode(withName: "camera", recursively: true)
-        view.showsStatistics = true
+//        view.showsStatistics = true
 //        view.allowsCameraControl = true
         
         // Add gesture recognizer
@@ -30,16 +30,6 @@ struct SceneView: UIViewRepresentable {
     }
     
     func updateUIView(_ view: SCNView, context: Context) {
-//        guard let camera = scene?.rootNode.childNode(withName: "camera", recursively: true) else { return }
-//
-//        _ = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { _ in
-//            if view.nodesInsideFrustum(of: camera).map({ $0.name == "dice1" || $0.name == "dice2" }).contains(true) {
-//                print("We have a short roll")
-//            } else {
-//                print("We have a valid roll")
-//            }
-//
-//        })
         //
     }
     
@@ -59,6 +49,10 @@ struct SceneView: UIViewRepresentable {
         
         var panStartZ = CGFloat()
         var lastPanLocation = SCNVector3()
+        
+        var positionDice1 = SCNVector3(x: -4, y: 7, z: 7.4)
+        var positionDice2 = SCNVector3(x: -1.5, y: 7, z: 7.4)
+        var durationOfReturn = Double()
         
         /// Handle PanGesture for rotation and applyForce to dice
         /// - Parameter panGesture: panGesture parameter
@@ -148,14 +142,31 @@ struct SceneView: UIViewRepresentable {
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                     if self.view.nodesInsideFrustum(of: camera).map({ $0.name == "dice1" || $0.name == "dice2" }).contains(true) {
-                        print("We have a short roll")
+                        print("Invalid Roll, No Roll")
+                        self.durationOfReturn = 1.0
                     } else {
                         print("We have a valid roll")
+                        self.durationOfReturn = 1.5
                     }
+                    self.returnDice()
                 }
             default:
                 break
             }
+        }
+        
+        func returnDice() {
+            scene?.physicsWorld.gravity.y = 0
+            
+            guard let dice1 = scene?.rootNode.childNode(withName: "dice1", recursively: true) else { return }
+            guard let dice2 = scene?.rootNode.childNode(withName: "dice2", recursively: true) else { return }
+            
+//            let globalPosition = dice1.convertPosition(positionDice1, to: nil)
+              // 4
+            dice1.runAction(SCNAction.move(to: positionDice1, duration: durationOfReturn))
+            dice2.runAction(SCNAction.move(to: positionDice2, duration: durationOfReturn))
+            dice1.physicsBody?.clearAllForces()
+            dice2.physicsBody?.clearAllForces()
         }
     }
 }
