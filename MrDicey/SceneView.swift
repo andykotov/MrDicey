@@ -8,6 +8,12 @@
 import SwiftUI
 import SceneKit
 
+enum CollisionTypes: Int {
+    case dices = 1
+    case wall = 2
+    case floor = 4
+}
+
 struct SceneView: UIViewRepresentable {
     
     var scene: SCNScene?
@@ -23,10 +29,13 @@ struct SceneView: UIViewRepresentable {
 //        view.showsStatistics = true
 //        view.allowsCameraControl = true
         
-        // create and configure a material for each face
+        // get nodes from MainScene.scn
         let box1 = scene?.rootNode.childNode(withName: "box1", recursively: true)
         let box2 = scene?.rootNode.childNode(withName: "box2", recursively: true)
+        let wall = scene?.rootNode.childNode(withName: "wall", recursively: true)
+        let floor = scene?.rootNode.childNode(withName: "floor", recursively: true)
         
+        // create and configure a material for each face
         let diceFaces = ["die1", "die2", "die3", "die4", "die5", "die6"]
         var materials: [SCNMaterial] = Array()
 
@@ -40,9 +49,25 @@ struct SceneView: UIViewRepresentable {
         box1?.geometry?.materials = materials
         box2?.geometry?.materials = materials
         
+        // collision setup
+        box1?.physicsBody?.categoryBitMask = CollisionTypes.dices.rawValue
+        box1?.physicsBody?.contactTestBitMask = CollisionTypes.wall.rawValue | CollisionTypes.floor.rawValue
+        
+        box2?.physicsBody?.categoryBitMask = CollisionTypes.dices.rawValue
+        box2?.physicsBody?.contactTestBitMask = CollisionTypes.wall.rawValue | CollisionTypes.floor.rawValue
+        
+        wall?.physicsBody?.categoryBitMask = CollisionTypes.wall.rawValue
+        wall?.physicsBody?.contactTestBitMask = CollisionTypes.dices.rawValue
+        
+        floor?.physicsBody?.categoryBitMask = CollisionTypes.floor.rawValue
+        floor?.physicsBody?.contactTestBitMask = CollisionTypes.dices.rawValue
+        
         // Add gesture recognizer
         let panGesture = UIPanGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handlePan(_:)))
         view.addGestureRecognizer(panGesture)
+        
+        // A delegate that is called when two physics bodies come in contact with each other.
+        view.scene?.physicsWorld.contactDelegate = context.coordinator
         
         return view
     }
@@ -55,7 +80,7 @@ struct SceneView: UIViewRepresentable {
         Coordinator(view, scene: scene)
     }
     
-    class Coordinator: NSObject {
+    class Coordinator: NSObject, SCNPhysicsContactDelegate {
         private let view: SCNView
         private let scene: SCNScene?
         
@@ -69,9 +94,10 @@ struct SceneView: UIViewRepresentable {
         var lastPanLocation = SCNVector3()
         
         var positionDice1 = SCNVector3(x: -4, y: 7, z: 7.4)
-        var positionDice2 = SCNVector3(x: -1.5, y: 7, z: 7.4)
+        var positionDice2 = SCNVector3(x: -2, y: 7, z: 7.4)
         var durationOfReturn = Double()
         var isDiceHitten = Bool()
+        var isRollValid = Bool()
         
         /// Handle PanGesture for rotation and applyForce to dice
         /// - Parameter panGesture: panGesture parameter
@@ -182,7 +208,11 @@ struct SceneView: UIViewRepresentable {
                             print("Invalid Roll, No Roll")
                             self.durationOfReturn = 1.0
                         } else {
-                            print("We have a valid roll")
+                            if self.isRollValid {
+                                print("We have a valid roll")
+                            } else {
+                                print("Invalid Roll, No Roll")
+                            }
                             self.durationOfReturn = 2.0
                         }
                         self.returnDice()
@@ -206,6 +236,17 @@ struct SceneView: UIViewRepresentable {
             box1.physicsBody?.clearAllForces()
             box2.physicsBody?.clearAllForces()
             isDiceHitten = false
+            isRollValid = false
+        }
+        
+        func physicsWorld(_ world: SCNPhysicsWorld, didBegin contact: SCNPhysicsContact) {
+            if contact.nodeA.physicsBody?.categoryBitMask == CollisionTypes.wall.rawValue && contact.nodeB.physicsBody?.categoryBitMask == CollisionTypes.dices.rawValue {
+                isRollValid = true
+            }
+            
+//            if contact.nodeB.physicsBody?.categoryBitMask == CollisionTypes.floor.rawValue && contact.nodeA.physicsBody?.categoryBitMask == CollisionTypes.dices.rawValue {
+//                print("floor")
+//            }
         }
     }
 }
