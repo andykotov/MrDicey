@@ -19,7 +19,6 @@ struct ContentView: View {
             Spacer()
             
             SceneView(scene: scene, options: [])
-            .edgesIgnoringSafeArea(.all)
         }
     }
 }

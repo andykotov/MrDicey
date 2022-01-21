@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
 		1865327C2790A38E00CDFFB6 /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1865327B2790A38E00CDFFB6 /* SceneView.swift */; };
 		1866B369278ECB7A00C1002C /* MainScene.scn in Resources */ = {isa = PBXBuildFile; fileRef = 1866B368278ECB7A00C1002C /* MainScene.scn */; };
-		18DA75DF278F889D00A469B6 /* wuerfel-color.png in Resources */ = {isa = PBXBuildFile; fileRef = 18DA75DD278F889D00A469B6 /* wuerfel-color.png */; };
-		18DA75E0278F889D00A469B6 /* wuerfel-normal.png in Resources */ = {isa = PBXBuildFile; fileRef = 18DA75DE278F889D00A469B6 /* wuerfel-normal.png */; };
 		CCAB697B278CF16500396D8A /* MrDiceyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCAB697A278CF16500396D8A /* MrDiceyApp.swift */; };
 		CCAB697D278CF16500396D8A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCAB697C278CF16500396D8A /* ContentView.swift */; };
 		CCAB697F278CF16600396D8A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CCAB697E278CF16600396D8A /* Assets.xcassets */; };
@@ -39,8 +37,6 @@
 /* Begin PBXFileReference section */
 		1865327B2790A38E00CDFFB6 /* SceneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneView.swift; sourceTree = "<group>"; };
 		1866B368278ECB7A00C1002C /* MainScene.scn */ = {isa = PBXFileReference; lastKnownFileType = file.bplist; path = MainScene.scn; sourceTree = "<group>"; };
-		18DA75DD278F889D00A469B6 /* wuerfel-color.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "wuerfel-color.png"; sourceTree = "<group>"; };
-		18DA75DE278F889D00A469B6 /* wuerfel-normal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "wuerfel-normal.png"; sourceTree = "<group>"; };
 		CCAB6977278CF16500396D8A /* MrDicey.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MrDicey.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CCAB697A278CF16500396D8A /* MrDiceyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MrDiceyApp.swift; sourceTree = "<group>"; };
 		CCAB697C278CF16500396D8A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -103,8 +99,6 @@
 		CCAB6979278CF16500396D8A /* MrDicey */ = {
 			isa = PBXGroup;
 			children = (
-				18DA75DD278F889D00A469B6 /* wuerfel-color.png */,
-				18DA75DE278F889D00A469B6 /* wuerfel-normal.png */,
 				1866B368278ECB7A00C1002C /* MainScene.scn */,
 				CCAB697A278CF16500396D8A /* MrDiceyApp.swift */,
 				CCAB697C278CF16500396D8A /* ContentView.swift */,
@@ -245,8 +239,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				18DA75DF278F889D00A469B6 /* wuerfel-color.png in Resources */,
-				18DA75E0278F889D00A469B6 /* wuerfel-normal.png in Resources */,
 				1866B369278ECB7A00C1002C /* MainScene.scn in Resources */,
 				CCAB6982278CF16600396D8A /* Preview Assets.xcassets in Resources */,
 				CCAB697F278CF16600396D8A /* Assets.xcassets in Resources */,

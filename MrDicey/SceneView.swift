@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SceneKit
+
 struct SceneView: UIViewRepresentable {
     
     var scene: SCNScene?
@@ -21,6 +22,23 @@ struct SceneView: UIViewRepresentable {
         view.pointOfView = scene?.rootNode.childNode(withName: "camera", recursively: true)
 //        view.showsStatistics = true
 //        view.allowsCameraControl = true
+        
+        // create and configure a material for each face
+        let box1 = scene?.rootNode.childNode(withName: "box1", recursively: true)
+        let box2 = scene?.rootNode.childNode(withName: "box2", recursively: true)
+        
+        let diceFaces = ["die1", "die2", "die3", "die4", "die5", "die6"]
+        var materials: [SCNMaterial] = Array()
+
+        for index in 0...5 {
+            let material = SCNMaterial()
+            material.diffuse.contents = UIImage(named: diceFaces[index])
+            materials.append(material)
+        }
+
+        // set the material to the 3d object geometry
+        box1?.geometry?.materials = materials
+        box2?.geometry?.materials = materials
         
         // Add gesture recognizer
         let panGesture = UIPanGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handlePan(_:)))
@@ -53,6 +71,7 @@ struct SceneView: UIViewRepresentable {
         var positionDice1 = SCNVector3(x: -4, y: 7, z: 7.4)
         var positionDice2 = SCNVector3(x: -1.5, y: 7, z: 7.4)
         var durationOfReturn = Double()
+        var isDiceHitten = Bool()
         
         /// Handle PanGesture for rotation and applyForce to dice
         /// - Parameter panGesture: panGesture parameter
@@ -60,8 +79,8 @@ struct SceneView: UIViewRepresentable {
 //            let p = panGesture.location(in: view)
 //            let hitResults = view.hitTest(p, options: [:])
             
-            guard let dice1 = scene?.rootNode.childNode(withName: "dice1", recursively: true) else { return }
-            guard let dice2 = scene?.rootNode.childNode(withName: "dice2", recursively: true) else { return }
+            guard let box1 = scene?.rootNode.childNode(withName: "box1", recursively: true) else { return }
+            guard let box2 = scene?.rootNode.childNode(withName: "box2", recursively: true) else { return }
             guard let camera = scene?.rootNode.childNode(withName: "camera", recursively: true) else { return }
             
 //            let translation = panGesture.translation(in: panGesture.view)
@@ -74,21 +93,27 @@ struct SceneView: UIViewRepresentable {
                 lastPanLocation = hitNodeResult.worldCoordinates
                 panStartZ = CGFloat(view.projectPoint(lastPanLocation).z)
                 
-                let worldTouchPosition = view.unprojectPoint(SCNVector3(location.x, location.y, panStartZ))
-                let movementVector = SCNVector3(
-                    worldTouchPosition.x - lastPanLocation.x,
-                    worldTouchPosition.y - lastPanLocation.y,
-                    worldTouchPosition.z - lastPanLocation.z)
-                dice1.localTranslate(by: movementVector)
-                dice2.localTranslate(by: movementVector)
-                self.lastPanLocation = worldTouchPosition
-//                print(view.isNode(dice1, insideFrustumOf: camera))
+                
+                if hitNodeResult.node.name == "box1" || hitNodeResult.node.name == "box2" {
+                    isDiceHitten = true
+                }
+                
+                if isDiceHitten {
+                    let worldTouchPosition = view.unprojectPoint(SCNVector3(location.x, location.y, panStartZ))
+                    let movementVector = SCNVector3(
+                        worldTouchPosition.x - lastPanLocation.x,
+                        worldTouchPosition.y - lastPanLocation.y,
+                        worldTouchPosition.z - lastPanLocation.z)
+                    box1.localTranslate(by: movementVector)
+                    box2.localTranslate(by: movementVector)
+                    self.lastPanLocation = worldTouchPosition
+                }
+//                print(view.isNode(box1, insideFrustumOf: camera))
                 
 //                if hitNodeResult.node.name == "dice" {
 //                    box = hitNodeResult.node ?? SCNNode()
 //                }
             case .changed:
-//                print(view.isNode(dice1, insideFrustumOf: camera))
 //                let currentPivot = box.pivot
 //                let currentPosition = box.position
 //                let changePivot = SCNMatrix4Invert(SCNMatrix4MakeRotation(box.rotation.w, box.rotation.x, box.rotation.y, box.rotation.z))
@@ -111,26 +136,28 @@ struct SceneView: UIViewRepresentable {
 //
 //
 //                box.rotation = rotationVector
-                let worldTouchPosition = view.unprojectPoint(SCNVector3(location.x, location.y, panStartZ))
-                let movementVector = SCNVector3(
-                    worldTouchPosition.x - lastPanLocation.x,
-                    worldTouchPosition.y - lastPanLocation.y,
-                    worldTouchPosition.z - lastPanLocation.z)
-                dice1.physicsBody?.applyForce(movementVector, asImpulse: true)
-                dice2.physicsBody?.applyForce(movementVector, asImpulse: true)
-                self.lastPanLocation = worldTouchPosition
+                if isDiceHitten {
+                    let worldTouchPosition = view.unprojectPoint(SCNVector3(location.x, location.y, panStartZ))
+                    let movementVector = SCNVector3(
+                        worldTouchPosition.x - lastPanLocation.x,
+                        worldTouchPosition.y - lastPanLocation.y,
+                        worldTouchPosition.z - lastPanLocation.z)
+                    box1.physicsBody?.applyForce(movementVector, asImpulse: true)
+                    box2.physicsBody?.applyForce(movementVector, asImpulse: true)
+                    self.lastPanLocation = worldTouchPosition
+                }
                 
             case .ended:
 //                let dicePosition = SCNVector3(
-//                    dice1.worldPosition.x,
+//                    box1.worldPosition.x,
 //                    30,
-//                    dice1.worldPosition.z)
+//                    box1.worldPosition.z)
 //                let euler = SCNVector3(
 //                    -90,
 //                    0,
 //                    0)
 //
-//                let constraint = SCNLookAtConstraint(target: dice1)
+//                let constraint = SCNLookAtConstraint(target: box1)
 //                camera.constraints = [constraint]
 //                camera.eulerAngles = euler
 //
@@ -138,17 +165,28 @@ struct SceneView: UIViewRepresentable {
 //                camera.runAction(move)
 //                camera.localTranslate(by: dicePosition)
                 
-                scene?.physicsWorld.gravity.y = -1
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    if self.view.nodesInsideFrustum(of: camera).map({ $0.name == "dice1" || $0.name == "dice2" }).contains(true) {
-                        print("Invalid Roll, No Roll")
-                        self.durationOfReturn = 1.0
-                    } else {
-                        print("We have a valid roll")
-                        self.durationOfReturn = 1.5
+                if isDiceHitten {
+                    scene?.physicsWorld.gravity.y = -1
+                    
+//                    let constraint = SCNLookAtConstraint(target: box1)
+//                     camera.constraints = [constraint]
+//                     // 3
+//                     let dicePosition = box1
+//                        .convertPosition(SCNVector3(x: box1.worldPosition.x, y: 30, z: box1.worldPosition.z), to: nil)
+//                     // 4
+//                    let move = SCNAction.move(to: dicePosition, duration: 1.0)
+//                    camera.runAction(move)
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                        if self.view.nodesInsideFrustum(of: camera).map({ $0.name == "box1" || $0.name == "box2" }).contains(true) {
+                            print("Invalid Roll, No Roll")
+                            self.durationOfReturn = 1.0
+                        } else {
+                            print("We have a valid roll")
+                            self.durationOfReturn = 2.0
+                        }
+                        self.returnDice()
                     }
-                    self.returnDice()
                 }
             default:
                 break
@@ -158,15 +196,16 @@ struct SceneView: UIViewRepresentable {
         func returnDice() {
             scene?.physicsWorld.gravity.y = 0
             
-            guard let dice1 = scene?.rootNode.childNode(withName: "dice1", recursively: true) else { return }
-            guard let dice2 = scene?.rootNode.childNode(withName: "dice2", recursively: true) else { return }
+            guard let box1 = scene?.rootNode.childNode(withName: "box1", recursively: true) else { return }
+            guard let box2 = scene?.rootNode.childNode(withName: "box2", recursively: true) else { return }
             
-//            let globalPosition = dice1.convertPosition(positionDice1, to: nil)
+//            let globalPosition = box1.convertPosition(positionDice1, to: nil)
               // 4
-            dice1.runAction(SCNAction.move(to: positionDice1, duration: durationOfReturn))
-            dice2.runAction(SCNAction.move(to: positionDice2, duration: durationOfReturn))
-            dice1.physicsBody?.clearAllForces()
-            dice2.physicsBody?.clearAllForces()
+            box1.runAction(SCNAction.move(to: positionDice1, duration: durationOfReturn))
+            box2.runAction(SCNAction.move(to: positionDice2, duration: durationOfReturn))
+            box1.physicsBody?.clearAllForces()
+            box2.physicsBody?.clearAllForces()
+            isDiceHitten = false
         }
     }
 }
