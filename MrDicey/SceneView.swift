@@ -98,6 +98,7 @@ struct SceneView: UIViewRepresentable {
         var durationOfReturn = Double()
         var isDiceHitten = Bool()
         var isRollValid = Bool()
+        let angles: [CGFloat] = [0, 90, 180, 270]
         
         /// Handle PanGesture for rotation and applyForce to dice
         /// - Parameter panGesture: panGesture parameter
@@ -115,6 +116,8 @@ struct SceneView: UIViewRepresentable {
             switch panGesture.state {
             case .began:
                 scene?.physicsWorld.gravity.y = 0
+                isRollValid = false
+                
                 guard let hitNodeResult = view.hitTest(location, options: nil).first else { return }
                 lastPanLocation = hitNodeResult.worldCoordinates
                 panStartZ = CGFloat(view.projectPoint(lastPanLocation).z)
@@ -228,9 +231,32 @@ struct SceneView: UIViewRepresentable {
             
             guard let box1 = scene?.rootNode.childNode(withName: "box1", recursively: true) else { return }
             guard let box2 = scene?.rootNode.childNode(withName: "box2", recursively: true) else { return }
+//            guard let wall = scene?.rootNode.childNode(withName: "wall", recursively: true) else { return }
             
 //            let globalPosition = box1.convertPosition(positionDice1, to: nil)
-              // 4
+          
+            if isRollValid {
+                // create and configure a material for each face
+                var diceFaces = ["die1", "die2", "die3", "die4", "die5", "die6"]
+                
+                var materialsArray: [[SCNMaterial]] = Array()
+
+                for _ in 0...1 {
+                    var materials: [SCNMaterial] = Array()
+                    diceFaces = diceFaces.shuffled()
+                    for index in 0...5 {
+                        let material = SCNMaterial()
+                        material.diffuse.contents = UIImage(named: diceFaces[index])
+                        materials.append(material)
+                    }
+                    materialsArray.append(materials)
+                }
+
+                // set the material to the 3d object geometry
+                box1.geometry?.materials = materialsArray[0]
+                box2.geometry?.materials = materialsArray[1]
+            }
+            
             box1.runAction(SCNAction.move(to: positionDice1, duration: durationOfReturn))
             box2.runAction(SCNAction.move(to: positionDice2, duration: durationOfReturn))
             box1.physicsBody?.clearAllForces()
