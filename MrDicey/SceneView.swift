@@ -8,12 +8,6 @@
 import SwiftUI
 import SceneKit
 
-enum CollisionTypes: Int {
-    case dices = 1
-    case wall = 2
-    case floor = 4
-}
-
 struct SceneView: UIViewRepresentable {
     var scene: SCNScene?
     var options: [Any]
@@ -24,12 +18,11 @@ struct SceneView: UIViewRepresentable {
         // Instantiate the SCNView and setup the scene
         view.scene = scene
         view.pointOfView = scene?.rootNode.childNode(withName: "camera", recursively: true)
+        view.autoenablesDefaultLighting = true
         
         // Getting nodes from MainScene.scn
         let box1 = scene?.rootNode.childNode(withName: "box1", recursively: true)
         let box2 = scene?.rootNode.childNode(withName: "box2", recursively: true)
-        let wall = scene?.rootNode.childNode(withName: "wall", recursively: true)
-        let floor = scene?.rootNode.childNode(withName: "floor", recursively: true)
         
         // Create and configure a material for each face
         let diceFaces = ["die1", "die2", "die3", "die4", "die5", "die6"]
@@ -45,22 +38,9 @@ struct SceneView: UIViewRepresentable {
         box1?.geometry?.materials = materials
         box2?.geometry?.materials = materials
         
-        // Contact setup
-        box1?.physicsBody?.categoryBitMask = CollisionTypes.dices.rawValue
-        box1?.physicsBody?.contactTestBitMask = CollisionTypes.wall.rawValue | CollisionTypes.floor.rawValue
-        box2?.physicsBody?.categoryBitMask = CollisionTypes.dices.rawValue
-        box2?.physicsBody?.contactTestBitMask = CollisionTypes.wall.rawValue | CollisionTypes.floor.rawValue
-        wall?.physicsBody?.categoryBitMask = CollisionTypes.wall.rawValue
-        wall?.physicsBody?.contactTestBitMask = CollisionTypes.dices.rawValue
-        floor?.physicsBody?.categoryBitMask = CollisionTypes.floor.rawValue
-        floor?.physicsBody?.contactTestBitMask = CollisionTypes.dices.rawValue
-        
         // Add gesture recognizer
         let panGesture = UIPanGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handlePan(_:)))
         view.addGestureRecognizer(panGesture)
-        
-        // A delegate that is called when two physics bodies come in contact with each other
-        view.scene?.physicsWorld.contactDelegate = context.coordinator
         
         return view
     }
@@ -73,7 +53,7 @@ struct SceneView: UIViewRepresentable {
         Coordinator(view, scene: scene)
     }
     
-    class Coordinator: NSObject, SCNPhysicsContactDelegate {
+    class Coordinator: NSObject {
         private let view: SCNView
         private let scene: SCNScene?
         
@@ -99,6 +79,7 @@ struct SceneView: UIViewRepresentable {
             guard let box1 = scene?.rootNode.childNode(withName: "box1", recursively: true) else { return }
             guard let box2 = scene?.rootNode.childNode(withName: "box2", recursively: true) else { return }
             guard let camera = scene?.rootNode.childNode(withName: "camera", recursively: true) else { return }
+            guard let light = scene?.rootNode.childNode(withName: "light", recursively: true) else { return }
             
             let location = panGesture.location(in: self.view)
             guard let hitNodeResult = view.hitTest(location, options: nil).first else { return }
@@ -115,34 +96,61 @@ struct SceneView: UIViewRepresentable {
                     isDiceHitten = true
                 }
                 
+                // A small animation of taking dice from a resting place
                 if isDiceHitten {
-                    let worldTouchPosition = view.unprojectPoint(SCNVector3(location.x, location.y, panStartZ))
-                    let movementVector = SCNVector3(
-                        worldTouchPosition.x - lastPanLocation.x,
-                        worldTouchPosition.y - lastPanLocation.y,
-                        worldTouchPosition.z - lastPanLocation.z)
-                    box1.localTranslate(by: movementVector)
-                    box2.localTranslate(by: movementVector)
+                    box1.runAction(SCNAction.scale(to: 0.9, duration: 0.2))
+                    box2.runAction(SCNAction.scale(to: 0.9, duration: 0.2))
                     
-                    self.lastPanLocation = worldTouchPosition
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        box1.runAction(SCNAction.scale(to: 1.1, duration: 0.1))
+                        box2.runAction(SCNAction.scale(to: 1.1, duration: 0.1))
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        box1.runAction(SCNAction.scale(to: 1, duration: 0.1))
+                        box2.runAction(SCNAction.scale(to: 1, duration: 0.1))
+                    }
                 }
+                
             case .changed:
+                //Moving the dice behind the finger
                 if isDiceHitten {
                     let worldTouchPosition = view.unprojectPoint(SCNVector3(location.x, location.y, panStartZ))
                     let movementVector = SCNVector3(
                         worldTouchPosition.x - lastPanLocation.x,
                         worldTouchPosition.y - lastPanLocation.y,
                         worldTouchPosition.z - lastPanLocation.z)
-                    box1.physicsBody?.applyForce(movementVector, asImpulse: true)
-                    box2.physicsBody?.applyForce(movementVector, asImpulse: true)
+                    
+                    box1.runAction(SCNAction.move(by: movementVector, duration: 0))
+                    box2.runAction(SCNAction.move(by: movementVector, duration: 0))
                     
                     self.lastPanLocation = worldTouchPosition
+                    
+                    if lastPanLocation.x > 4.0 {
+                        light.light?.color = UIColor.green
+                    } else {
+                        light.light?.color = UIColor.white
+                    }
                 }
                 
             case .ended:
                 if isDiceHitten {
                     scene?.physicsWorld.gravity.y = -1
                     
+                    // Roll the dice to the right side of the screen
+                    if lastPanLocation.x > 4.0 {
+                        let movementVector = SCNVector3(
+                            lastPanLocation.x,
+                            0,
+                            lastPanLocation.z)
+                        
+                        box1.physicsBody?.applyForce(movementVector, asImpulse: true)
+                        box2.physicsBody?.applyForce(movementVector, asImpulse: true)
+                        
+                        isRollValid = true
+                    }
+                    
+                    //Determining the correct roll of the dice
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                         if self.view.nodesInsideFrustum(of: camera).map({ $0.name == "box1" || $0.name == "box2" }).contains(true) {
                             print("Invalid Roll, No Roll")
@@ -168,6 +176,7 @@ struct SceneView: UIViewRepresentable {
             
             guard let box1 = scene?.rootNode.childNode(withName: "box1", recursively: true) else { return }
             guard let box2 = scene?.rootNode.childNode(withName: "box2", recursively: true) else { return }
+            guard let light = scene?.rootNode.childNode(withName: "light", recursively: true) else { return }
           
             if isRollValid {
                 // create and configure a material for each face
@@ -202,16 +211,7 @@ struct SceneView: UIViewRepresentable {
             
             isDiceHitten = false
             isRollValid = false
-        }
-        
-        /// Tells the delegate that two bodies have come into contact.
-        /// - Parameters:
-        ///   - world: The global simulation of collisions, gravity, joints, and other physics effects in a scene.
-        ///   - contact: Detailed information about a contact between two physics bodies in a scene’s physics simulation.
-        func physicsWorld(_ world: SCNPhysicsWorld, didBegin contact: SCNPhysicsContact) {
-            if contact.nodeA.physicsBody?.categoryBitMask == CollisionTypes.wall.rawValue && contact.nodeB.physicsBody?.categoryBitMask == CollisionTypes.dices.rawValue {
-                isRollValid = true
-            }
+            light.light?.color = UIColor.white
         }
     }
 }
