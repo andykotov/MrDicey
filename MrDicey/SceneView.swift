@@ -25,7 +25,7 @@ struct SceneView: UIViewRepresentable {
         let box2 = scene?.rootNode.childNode(withName: "box2", recursively: true)
         
         // Create and configure a material for each face
-        let diceFaces = ["die1", "die2", "die3", "die4", "die5", "die6"]
+        let diceFaces = ["die3", "die6", "die4", "die1", "die5", "die2"]
         var materials: [SCNMaterial] = Array()
 
         for index in 0...5 {
@@ -180,27 +180,54 @@ struct SceneView: UIViewRepresentable {
           
             if isRollValid {
                 // create and configure a material for each face
-                var diceFaces = ["die1", "die2", "die3", "die4", "die5", "die6"]
-                
-                var materialsArray: [[SCNMaterial]] = Array()
+                var twoDiceMaterials: [[SCNMaterial]] = Array()
 
                 for _ in 0...1 {
                     var materials: [SCNMaterial] = Array()
+                    var diceFaces = ["die3", "die6", "die4", "die1", "die5", "die2"]
+                    var diceShuffled: [String] = Array()
                     diceFaces = diceFaces.shuffled()
+                    
+                    // Setting the correct sequence of dice faces
                     for index in 0...5 {
-                        let material = SCNMaterial()
-                        material.diffuse.contents = UIImage(named: diceFaces[index])
-                        materials.append(material)
-                        if index == 4 {
-                            print(diceFaces[index])
+                        if index == 1 {
+                            let element = diceFaces.remove(at: diceFaces.firstIndex(where: {
+                                Int(String($0.last!))! + Int(String(diceShuffled[0].last!))! != 7
+                            })!)
+                            diceShuffled.append(element)
+                        } else if index == 2 {
+                            let element = diceFaces.remove(at: diceFaces.firstIndex(where: {
+                                Int(String($0.last!))! + Int(String(diceShuffled[0].last!))! == 7
+                            })!)
+                            diceShuffled.append(element)
+                        } else if index == 3 {
+                            let element = diceFaces.remove(at: diceFaces.firstIndex(where: {
+                                Int(String($0.last!))! + Int(String(diceShuffled[1].last!))! == 7
+                            })!)
+                            diceShuffled.append(element)
+                        } else {
+                            let element = diceFaces.removeFirst()
+                            diceShuffled.append(element)
                         }
                     }
-                    materialsArray.append(materials)
+                    
+                    //Filling faces in materials array
+                    for index in 0...5 {
+                        let material = SCNMaterial()
+                        material.diffuse.contents = UIImage(named: diceShuffled[index])
+                        materials.append(material)
+                        if index == 4 {
+                            print(diceShuffled[index])
+                        }
+                    }
+                    
+                    twoDiceMaterials.append(materials)
+                    print(diceShuffled)
                 }
 
                 // set the material to the 3d object geometry
-                box1.geometry?.materials = materialsArray[0]
-                box2.geometry?.materials = materialsArray[1]
+                box1.geometry?.materials = twoDiceMaterials[0]
+                box2.geometry?.materials = twoDiceMaterials[1]
             }
             
             box1.runAction(SCNAction.move(to: positionDice1, duration: durationOfReturn))
