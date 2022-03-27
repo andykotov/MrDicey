@@ -9,9 +9,10 @@ import SwiftUI
 import SceneKit
 
 struct SceneView: UIViewRepresentable {
-    var scene: SCNScene?
-    var options: [Any]
+    @Binding var message: String
+    @Binding var color: Color
     
+    var scene: SCNScene?
     var view = SCNView()
     
     func makeUIView(context: Context) -> SCNView {
@@ -50,17 +51,14 @@ struct SceneView: UIViewRepresentable {
     }
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(view, scene: scene)
+        Coordinator(self)
     }
     
     class Coordinator: NSObject {
-        private let view: SCNView
-        private let scene: SCNScene?
-        
-        init(_ view: SCNView, scene: SCNScene?) {
-            self.view = view
-            self.scene = scene
-            super.init()
+        let parent: SceneView
+
+        init(_ parent: SceneView) {
+            self.parent = parent
         }
         
         let angles: [CGFloat] = [0, 90, 180, 270]
@@ -76,21 +74,21 @@ struct SceneView: UIViewRepresentable {
         /// - Parameter panGesture: A discrete gesture recognizer that interprets panning gestures.
         @objc func handlePan(_ panGesture: UIPanGestureRecognizer){
             // Getting nodes from MainScene.scn
-            guard let box1 = scene?.rootNode.childNode(withName: "box1", recursively: true) else { return }
-            guard let box2 = scene?.rootNode.childNode(withName: "box2", recursively: true) else { return }
-            guard let camera = scene?.rootNode.childNode(withName: "camera", recursively: true) else { return }
-            guard let light = scene?.rootNode.childNode(withName: "light", recursively: true) else { return }
+            guard let box1 = parent.scene?.rootNode.childNode(withName: "box1", recursively: true) else { return }
+            guard let box2 = parent.scene?.rootNode.childNode(withName: "box2", recursively: true) else { return }
+            guard let camera = parent.scene?.rootNode.childNode(withName: "camera", recursively: true) else { return }
+            guard let light = parent.scene?.rootNode.childNode(withName: "light", recursively: true) else { return }
             
-            let location = panGesture.location(in: self.view)
-            guard let hitNodeResult = view.hitTest(location, options: nil).first else { return }
+            let location = panGesture.location(in: parent.view)
+            guard let hitNodeResult = parent.view.hitTest(location, options: nil).first else { return }
             
             switch panGesture.state {
             case .began:
-                scene?.physicsWorld.gravity.y = 0
+                parent.scene?.physicsWorld.gravity.y = 0
                 
                 isRollValid = false
                 lastPanLocation = hitNodeResult.worldCoordinates
-                panStartZ = CGFloat(view.projectPoint(lastPanLocation).z)
+                panStartZ = CGFloat(parent.view.projectPoint(lastPanLocation).z)
                 
                 if hitNodeResult.node.name == "box1" || hitNodeResult.node.name == "box2" {
                     isDiceHitten = true
@@ -115,7 +113,7 @@ struct SceneView: UIViewRepresentable {
             case .changed:
                 //Moving the dice behind the finger
                 if isDiceHitten {
-                    let worldTouchPosition = view.unprojectPoint(SCNVector3(location.x, location.y, panStartZ))
+                    let worldTouchPosition = parent.view.unprojectPoint(SCNVector3(location.x, location.y, panStartZ))
                     let movementVector = SCNVector3(
                         worldTouchPosition.x - lastPanLocation.x,
                         worldTouchPosition.y - lastPanLocation.y,
@@ -135,7 +133,7 @@ struct SceneView: UIViewRepresentable {
                 
             case .ended:
                 if isDiceHitten {
-                    scene?.physicsWorld.gravity.y = -1
+                    parent.scene?.physicsWorld.gravity.y = -1
                     
                     // Roll the dice to the right side of the screen
                     if lastPanLocation.x > 4.0 {
@@ -152,16 +150,28 @@ struct SceneView: UIViewRepresentable {
                     
                     //Determining the correct roll of the dice
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                        if self.view.nodesInsideFrustum(of: camera).map({ $0.name == "box1" || $0.name == "box2" }).contains(true) {
-                            print("Invalid Roll, No Roll")
+                        if self.parent.view.nodesInsideFrustum(of: camera).map({ $0.name == "box1" || $0.name == "box2" }).contains(true) {
+                            self.parent.message = "Invalid dice roll"
+                            self.parent.color = .red
+                            print("Invalid dice roll")
                             self.durationOfReturn = 1.0
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                                self.parent.message = String()
+                            }
                         } else {
                             if self.isRollValid {
-                                print("We have a valid roll")
+                                self.parent.message = "Valid roll of the dice"
+                                self.parent.color = .green
+                                print("Valid roll of the dice")
                             } else {
-                                print("Invalid Roll, No Roll")
+                                self.parent.message = "Invalid dice roll"
+                                self.parent.color = .red
+                                print("Invalid dice roll")
                             }
                             self.durationOfReturn = 2.0
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+                                self.parent.message = String()
+                            }
                         }
                         self.returnDice()
                     }
@@ -172,11 +182,11 @@ struct SceneView: UIViewRepresentable {
         }
         /// Return of the dice to their place of rest with SCNAction
         func returnDice() {
-            scene?.physicsWorld.gravity.y = 0
+            parent.scene?.physicsWorld.gravity.y = 0
             
-            guard let box1 = scene?.rootNode.childNode(withName: "box1", recursively: true) else { return }
-            guard let box2 = scene?.rootNode.childNode(withName: "box2", recursively: true) else { return }
-            guard let light = scene?.rootNode.childNode(withName: "light", recursively: true) else { return }
+            guard let box1 = parent.scene?.rootNode.childNode(withName: "box1", recursively: true) else { return }
+            guard let box2 = parent.scene?.rootNode.childNode(withName: "box2", recursively: true) else { return }
+            guard let light = parent.scene?.rootNode.childNode(withName: "light", recursively: true) else { return }
           
             if isRollValid {
                 // create and configure a material for each face

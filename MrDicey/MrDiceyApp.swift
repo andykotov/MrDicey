@@ -11,7 +11,7 @@ import SwiftUI
 struct MrDiceyApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(message: String(), color: .primary)
         }
     }
 }
