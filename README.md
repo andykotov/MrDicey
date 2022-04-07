@@ -4,7 +4,7 @@
 
 ### About
 
-Part of a dice game interface called <b>Learn Craps Yo FREE</b>. </br>Thanks to [Mike Land](https://github.com/lando2319) for `SwiftUI` development contract.
+Part of the game interface of a craps app called <b>Learn Craps Yo FREE</b>. </br>Thanks to [Mike Land](https://github.com/lando2319) for the `SwiftUI` development contract.
 
 <b>Date:</b> 2022-01-10
 
